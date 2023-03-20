@@ -1,0 +1,28 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group 'edu.unlv.evol'
+version '1.0-SNAPSHOT'
+
+applicationName = rootProject.name
+mainClassName = "edu.unlv.evol.patchintegrator.App"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
+    implementation 'com.github.tsantalis:refactoring-miner:2.3.2'
+    implementation 'org.kohsuke:github-api:1.135'
+    implementation 'commons-cli:commons-cli:1.2'
+    implementation 'org.eclipse.jgit:org.eclipse.jgit:6.4.0.202211300538-r'
+    implementation 'org.apache.logging.log4j:log4j-api:2.20.0'
+    implementation 'org.apache.logging.log4j:log4j-core:2.20.0'
+    implementation 'org.javalite:activejdbc:2.2'
+    implementation 'org.javalite:activejdbc-instrumentation:2.3'
+    implementation 'mysql:mysql-connector-java:8.0.32'
+}
