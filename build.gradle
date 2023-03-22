@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'application'
+    id "de.schablinski.activejdbc-gradle-plugin" version "1.5.2"
 }
 
 group 'edu.unlv.evol'
