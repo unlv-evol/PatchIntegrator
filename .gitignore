@@ -25,6 +25,9 @@ hs_err_pid*
 # Maven
 log/
 target/
+projects/
+logs/
+dataset/dataset.csv
 
 # Inclusions
 !lib/**
