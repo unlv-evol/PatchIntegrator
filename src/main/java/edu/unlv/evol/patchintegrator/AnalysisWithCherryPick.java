@@ -50,8 +50,8 @@ public class AnalysisWithCherryPick {
 
     /**
      *
-     * @param sourceURL
-     * @param targetURL
+     * @param sourceURL GitHub repo of the source variant
+     * @param targetURL GitHub repo of the target(divergent) variant
      */
     private void cloneAndAnalyzeProject(String sourceURL, String targetURL) {
         String projectName = Utils.getProjectName(targetURL);
@@ -141,9 +141,9 @@ public class AnalysisWithCherryPick {
 
     /**
      *
-     * @param project
-     * @throws GitAPIException
-     * @throws IOException
+     * @param project cloned repo of the target variant
+     * @throws GitAPIException thrown when git operation fails
+     * @throws IOException thrown when project directory is not available
      */
     private void analyzeProject(Project project) throws GitAPIException, IOException {
         Utils.log(project.getName(), String.format("Analyzing %s's commits...", project.getName()));
@@ -155,9 +155,9 @@ public class AnalysisWithCherryPick {
 
     /**
      *
-     * @param project
-     * @throws GitAPIException
-     * @throws IOException
+     * @param project cloned repo of the target variant
+     * @throws GitAPIException thrown when git operation fails
+     * @throws IOException thrown when project directory is not available
      */
     private void analyzeProjectCommits(Project project) throws GitAPIException, IOException {
         GitUtils gitUtils = new GitUtils(new File(clonePath, project.getName()));
@@ -186,7 +186,7 @@ public class AnalysisWithCherryPick {
 
             try {
                 conflictingJavaFiles.clear();
-                boolean isConflicting = gitUtils.isConflicting(mergeCommit, conflictingJavaFiles);
+                boolean isConflicting = gitUtils.isConflictingCherryPick(mergeCommit, conflictingJavaFiles);
 
                 mergeCommitModel = new MergeCommit(mergeCommit.getName(), isConflicting,
                         mergeParent.getName(), mergeCommit.getName(), project,
@@ -207,9 +207,11 @@ public class AnalysisWithCherryPick {
 
     /**
      *
-     * @param gitUtils
-     * @param mergeCommit
-     * @param conflictingJavaFiles
+     * @param gitUtils instance of the GitUtils class
+     * @param mergeCommit instance of the MergeCommit class
+     * @param conflictingJavaFiles stores conflicting java files in a map data structure
+     * @see GitHubUtils
+     * @see MergeCommit
      */
     private void extractConflictingRegions(GitUtils gitUtils, MergeCommit mergeCommit,
                                            Map<String, String> conflictingJavaFiles) {
@@ -274,7 +276,7 @@ public class AnalysisWithCherryPick {
 
     /**
      *
-     * @param project
+     * @param project cloned repo of the target variant
      */
     private void analyzeProjectWithRefMiner(Project project) {
         List<ConflictingRegionHistory> historyConfRegions =
@@ -309,8 +311,9 @@ public class AnalysisWithCherryPick {
 
     /**
      *
-     * @param conflictingRegionHistory
-     * @return
+     * @param conflictingRegionHistory instance of ConflictingRegionHistory
+     * @return refactoringCommit
+     * @see ConflictingRegionHistory
      */
     private RefactoringCommit populateRefactoringCommit(ConflictingRegionHistory conflictingRegionHistory) {
         RefactoringCommit refactoringCommit = RefactoringCommit.findFirst("commit_hash = ?",
@@ -331,13 +334,13 @@ public class AnalysisWithCherryPick {
 
     /**
      *
-     * @param executor
-     * @param refMinerUtils
-     * @param project
-     * @param conflictingRegionHistory
-     * @param refactoringCommit
-     * @throws InterruptedException
-     * @throws ExecutionException
+     * @param executor service executor object
+     * @param refMinerUtils object refMinerUtils
+     * @param project cloned repo of the target variant
+     * @param conflictingRegionHistory instance of ConflictingRegionHistory
+     * @param refactoringCommit object of RefactoringCommit class
+     * @throws InterruptedException interrupt exception
+     * @throws ExecutionException execution exception
      */
     private void asyncRunRefMiner(ExecutorService executor, RefactoringMinerUtils refMinerUtils, Project project,
                                   ConflictingRegionHistory conflictingRegionHistory, RefactoringCommit refactoringCommit)
@@ -369,9 +372,11 @@ public class AnalysisWithCherryPick {
 
     /**
      *
-     * @param refactorings
-     * @param refactoringCommit
-     * @param refMinerUtils
+     * @param refactorings list of refactorings
+     * @param refactoringCommit object of RefactoringCommit class
+     * @param refMinerUtils object refMinerUtils
+     * @see RefactoringCommit
+     * @see RefactoringMinerUtils
      */
     private void processRefactorings(List<Refactoring> refactorings, RefactoringCommit refactoringCommit,
                                      RefactoringMinerUtils refMinerUtils) {
