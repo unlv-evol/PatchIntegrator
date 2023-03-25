@@ -41,5 +41,22 @@ You can choose a different database name. To do this, simply edit `Patch_Integra
 #### 2. Create Dataset
 The program requires a text file consisting of the following: (i) GitHub repo of the `mainline` (SOURCE_REPO), (ii) GitHub repo of the `divergent fork` (DIVERGENT_REPO) and (iii) list of `patches` to be integrate from `mainline` to `divergent fork`. Each line in the text file should include the complete URL of repos in common separated format. We have included  a sample of the `reposList.txt` file.
 
+#### 3. Build the Project
+#### 4. Run the JAR
+You can run the JAR file with the following command:
+```
+java -jar refactoring-analysis.jar [OPTIONS]
+```
+Note that none of the options are required. Here is a list of available options:
 
-
+```
+-c,--clonepath <file>        directory to temporarily download repositories (default=projects)
+-d,--dbproperties <file>     database properties file (default=database.properties)
+-h,--help                    print this message
+-p,--parallelism <threads>   number of threads for parallel computing (default=1)
+-r,--reposfile <file>        list of repositories to be analyzed (default=reposList.txt)
+```
+Here is an example command with all the options:
+```
+ java -jar patch-integrator.jar -r list.txt -c downloadedRepos -d mydb.properties -p 8 
+```
