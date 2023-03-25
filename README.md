@@ -1,7 +1,7 @@
 # Patch Integrator (PI)
-The goal of this project is to integrated missed patches from base repository to a divergent variant fork. It utilizes the work done in [RefactoringInMergeCommits]() project.
+The goal of this project is to integrate missed patches from base repository to a divergent variant fork. It utilizes the work done in [RefactoringInMergeCommits](https://github.com/danielogen/RefactoringsInMergeCommits) project.
 ### Project Context
-[LinkedIn]() is a clone-and-own variant of [Apache Kafka]() that was created by copying and adapting the existing code of Apache Kafka that was forked on `2011-08-15T18:06:16Z`. The two software systems kept on synchronizing their new updates until `2021-07-06T17:39:59Z`. Since `2021-07-06T17:39:59Z` (divergence date), the two projects do not share common commits yet actively evolve in parallel. Currently, ( as of `2022-10-01T15:01:39Z`), LinkedIn has _367_ individual commits, and Apache Kafka has _1,216_ individual commits. Development becomes redundant with the continued divergence, and maintenance efforts rapidly grow. For example, if a bug is discovered in a shared file and fixed in one variant, it is not easy to tell if it has been fixed in the other variant.
+[LinkedIn](https://github.com/linkedin/kafka) is a clone-and-own variant of [Apache Kafka](https://github.com/apache/kafka) that was created by copying and adapting the existing code of Apache Kafka that was forked on `2011-08-15T18:06:16Z`. The two software systems kept on synchronizing their new updates until `2021-07-06T17:39:59Z`. Since `2021-07-06T17:39:59Z` (divergence date), the two projects do not share common commits yet actively evolve in parallel. Currently, ( as of `2022-10-01T15:01:39Z`), LinkedIn has _367_ individual commits, and Apache Kafka has _1,216_ individual commits. Development becomes redundant with the continued divergence, and maintenance efforts rapidly grow. For example, if a bug is discovered in a shared file and fixed in one variant, it is not easy to tell if it has been fixed in the other variant.
 
 ### System Requirements
 - Linux or macOS
@@ -29,16 +29,17 @@ dependencies {
 ```
 ### Running Patch Integrator
 #### 1. Database Setting
-**PI** running on `MySQL` database engine. Modify the `database.properties` file and add your MySQL `username` and `password`:
+**PI** runs on `MySQL` database engine. Modify the `database.properties` file and add your MySQL `username` and `password`:
 ```properties
 development.driver=com.mysql.cj.jdbc.Driver
 development.username=USERNAME
 development.password=PASSWORD
 development.url=jdbc:mysql://localhost/Patch_Integrator
 ```
-You can choose a different name for the database. Simply edit `Patch_Integrator` in the `development.url` property above. Please make sure that another database with the same name doesn't exist, since it'll most likely have a different schema and the program will run into problems.
+You can choose a different database name. To do this, simply edit `Patch_Integrator` in the `development.url` property above. Please make sure that another database with the same name doesn't exist, since it'll most likely have a different schema and the program will run into problems.
 
 #### 2. Create Dataset
+The program requires a text file consisting of the following: (i) GitHub repo of the `mainline` (SOURCE_REPO), (ii) GitHub repo of the `divergent fork` (DIVERGENT_REPO) and (iii) list of `patches` to be integrate from `mainline` to `divergent fork`. Each line in the text file should include the complete URL of repos in common separated format. We have included  a sample of the `reposList.txt` file.
 
 
 
