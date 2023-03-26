@@ -1,5 +1,5 @@
 # Patch Integrator (PI)
-The goal of this project is to integrate missed patches from base repository to a divergent variant fork. It utilizes the work done in [RefactoringInMergeCommits](https://github.com/danielogen/RefactoringsInMergeCommits) project.
+The goal of this project is to integrate missed patches from base repository to a divergent variant fork. It extends the work done in [RefactoringInMergeCommits](https://github.com/danielogen/RefactoringsInMergeCommits) project.
 ### Project Context
 [LinkedIn](https://github.com/linkedin/kafka) is a clone-and-own variant of [Apache Kafka](https://github.com/apache/kafka) that was created by copying and adapting the existing code of Apache Kafka that was forked on `2011-08-15T18:06:16Z`. The two software systems kept on synchronizing their new updates until `2021-07-06T17:39:59Z`. Since `2021-07-06T17:39:59Z` (divergence date), the two projects do not share common commits yet actively evolve in parallel. Currently, ( as of `2022-10-01T15:01:39Z`), LinkedIn has _367_ individual commits, and Apache Kafka has _1,216_ individual commits. Development becomes redundant with the continued divergence, and maintenance efforts rapidly grow. For example, if a bug is discovered in a shared file and fixed in one variant, it is not easy to tell if it has been fixed in the other variant.
 
