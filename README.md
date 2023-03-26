@@ -57,6 +57,8 @@ Note that none of the options are required. Here is a list of available options:
 -r,--reposfile <file>        list of repositories to be analyzed (default=reposList.txt)
 ```
 Here is an example command with all the options:
-```
+```commandline
  java -jar patch-integrator.jar -r list.txt -c downloadedRepos -d mydb.properties -p 8 
 ```
+#### 5. Generate Stats Summaries 
+
