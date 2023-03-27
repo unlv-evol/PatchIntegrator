@@ -42,6 +42,22 @@ You can choose a different database name. To do this, simply edit `Patch_Integra
 The program requires a text file consisting of the following: (i) GitHub repo of the `mainline` (SOURCE_REPO), (ii) GitHub repo of the `divergent fork` (DIVERGENT_REPO) and (iii) list of `patches` to be integrate from `mainline` to `divergent fork`. Each line in the text file should include the complete URL of repos in common separated format. We have included  a sample of the `reposList.txt` file.
 
 #### 3. Build the Project
+PI can be built using [gradle]() build tool:
+```
+.\gradlew build
+```
+Run the project using;
+```
+.\gradlew run
+```
+Note that the results will be stored in `MySQL` database configured in step **1** above.
+
+You can also run unit **tests**:
+```
+.\gradlew test
+```  
+To build a `jar` file run this command:
+
 #### 4. Run the JAR
 You can run the JAR file with the following command:
 ```
@@ -60,5 +76,5 @@ Here is an example command with all the options:
 ```commandline
  java -jar patch-integrator.jar -r list.txt -c downloadedRepos -d mydb.properties -p 8 
 ```
-#### 5. Generate Stats Summaries 
+#### 5. Analysis 
 
