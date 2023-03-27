@@ -92,7 +92,7 @@ public class App {
 
     private static void printHelp() {
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp( "java -jar patch-integrator.jar [OPTIONS]", createOptions());
+        formatter.printHelp( "java -jar PatchIntegrator-1.0-SNAPSHOT.jar [OPTIONS]", createOptions());
     }
 }
 
