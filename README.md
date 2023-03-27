@@ -11,7 +11,7 @@ The goal of this project is to integrate missed patches from base repository to 
 - MySQL 5.7
 
 ### Dependencies
-Project dependencies are easily managed using [gradle]() build tool.
+Project dependencies are easily managed using [gradle](https://gradle.org/) build tool.
 ```groovy
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
@@ -42,7 +42,7 @@ You can choose a different database name. To do this, simply edit `Patch_Integra
 The program requires a text file consisting of the following: (i) GitHub repo of the `mainline` (SOURCE_REPO), (ii) GitHub repo of the `divergent fork` (DIVERGENT_REPO) and (iii) list of `patches` to be integrate from `mainline` to `divergent fork`. Each line in the text file should include the complete URL of repos in common separated format. We have included  a sample of the `reposList.txt` file.
 
 #### 3. Build the Project
-PI can be built using [gradle]() build tool:
+PI can be built using [gradle](https://gradle.org/) build tool:
 ```
 .\gradlew build
 ```
@@ -50,7 +50,7 @@ Run the project using;
 ```
 .\gradlew run
 ```
-Note that the results will be stored in `MySQL` database configured in step **1** above.
+Note that the results will be stored in `MySQL` database configured in **step 1** above.
 
 You can also run unit **tests**:
 ```
@@ -74,7 +74,7 @@ Note that none of the options are required. Here is a list of available options:
 ```
 Here is an example command with all the options:
 ```commandline
- java -jar patch-integrator.jar -r list.txt -c downloadedRepos -d mydb.properties -p 8 
+ java -jar patch-integrator.jar -r reposList.txt -c projects -d mydb.properties -p 8 
 ```
 #### 5. Analysis 
 
