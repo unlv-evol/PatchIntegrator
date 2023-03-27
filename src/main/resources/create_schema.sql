@@ -28,6 +28,24 @@ CREATE TABLE IF NOT EXISTS `patch_integrator`.`project` (
   PRIMARY KEY (`id`))
 ENGINE = InnoDB;
 
+-- -----------------------------------------------------
+-- Table `patch_integrator`.`patches`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `patch_integrator`.`patches` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `number` INT(10) NOT NULL,
+   `project_id` INT NOT NULL,
+  `is_conflicting` TINYINT(1) NULL DEFAULT 0,
+  `is_done` TINYINT(1) NULL DEFAULT 0,
+  PRIMARY KEY (`id`, `project_id`)),
+  UNIQUE INDEX `number_UNIQUE` (`number` ASC),
+  INDEX `fk_patches_project_idx` (`project_id` ASC),
+  CONSTRAINT `fk_patches_project`
+    FOREIGN KEY (`project_id`)
+    REFERENCES `patch_integrator`.`project` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
+ENGINE = InnoDB;
 
 -- -----------------------------------------------------
 -- Table `patch_integrator`.`merge_commit`
