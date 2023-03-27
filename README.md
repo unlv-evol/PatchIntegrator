@@ -56,7 +56,7 @@ You can also run unit **tests**:
 ```
 .\gradlew test
 ```  
-To build a `jar` file run this command:
+To build a `jar` file run `.\gradlew build`, the `jar` file will be stored in `build > libs` directory with the file name: `PatchIntegrator-1.0-SNAPSHOT.jar`
 
 #### 4. Run the JAR
 You can run the JAR file with the following command:
@@ -74,7 +74,7 @@ Note that none of the options are required. Here is a list of available options:
 ```
 Here is an example command with all the options:
 ```commandline
- java -jar patch-integrator.jar -r reposList.txt -c projects -d mydb.properties -p 8 
+ java -jar PatchIntegrator-1.0-SNAPSHOT.jar -r reposList.txt -c projects -d mydb.properties -p 8 
 ```
 #### 5. Analysis 
 
