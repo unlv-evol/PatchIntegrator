@@ -61,7 +61,7 @@ To build a `jar` file run `.\gradlew build`, the `jar` file will be stored in `b
 #### 4. Run the JAR
 You can run the JAR file with the following command:
 ```
-java -jar refactoring-analysis.jar [OPTIONS]
+java -jar PatchIntegrator-1.0-SNAPSHOT.jar [OPTIONS]
 ```
 Note that none of the options are required. Here is a list of available options:
 
