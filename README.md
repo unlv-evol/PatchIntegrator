@@ -44,19 +44,19 @@ The program requires a text file consisting of the following: (i) GitHub repo of
 #### 3. Build the Project
 PI can be built using [gradle](https://gradle.org/) build tool:
 ```
-.\gradlew build
+./gradlew build
 ```
 Run the project using;
 ```
-.\gradlew run
+./gradlew run
 ```
 Note that the results will be stored in `MySQL` database configured in **step 1** above.
 
 You can also run unit **tests**:
 ```
-.\gradlew test
+./gradlew test
 ```  
-To build a `jar` file run `.\gradlew build`, the `jar` file will be stored in `build > libs` directory with the file name: `PatchIntegrator-1.0-SNAPSHOT.jar`
+To build a `jar` file run `./gradlew build`, the `jar` file will be stored in `build > libs` directory with the file name: `PatchIntegrator-1.0-SNAPSHOT.jar`
 
 #### 4. Run the JAR
 You can run the JAR file with the following command:
