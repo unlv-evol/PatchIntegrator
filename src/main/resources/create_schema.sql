@@ -31,7 +31,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `patch_integrator`.`patches`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `patch_integrator`.`patches` (
+CREATE TABLE IF NOT EXISTS `patch_integrator`.`patch` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `number` INT(10) NOT NULL,
    `project_id` INT NOT NULL,
