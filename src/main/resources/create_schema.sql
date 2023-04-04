@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS `patch_integrator`.`project` (
 ENGINE = InnoDB;
 
 -- -----------------------------------------------------
--- Table `patch_integrator`.`patches`
+-- Table `patch_integrator`.`patch`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `patch_integrator`.`patch` (
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS `patch_integrator`.`patch` (
    `project_id` INT NOT NULL,
   `is_conflicting` TINYINT(1) NULL DEFAULT 0,
   `is_done` TINYINT(1) NULL DEFAULT 0,
-  PRIMARY KEY (`id`, `project_id`)),
+  PRIMARY KEY (`id`, `project_id`),
   UNIQUE INDEX `number_UNIQUE` (`number` ASC),
   INDEX `fk_patches_project_idx` (`project_id` ASC),
   CONSTRAINT `fk_patches_project`
