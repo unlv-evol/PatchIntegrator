@@ -10,8 +10,9 @@ public class App {
     private static final String DEFAULT_REPOS_FILE = "reposList.txt";
     private static final String DEFAULT_CLONE_PATH = "projects";
     private static final String DEFAULT_DB_PROPERTIES_FILE = "database.properties";
-    private static final String DEFAULT_SOURCE_REPO = "https://github.com/apache/kafka"; //Apache Kafka
-    private static final String DEFAULT_VARIANT_REPO = "https://github.com/danielogen/linkedin"; //LinkedIn Kafka
+//    private static final String DEFAULT_SOURCE_REPO = "https://github.com/apache/kafka"; //Apache Kafka
+//    private static final String DEFAULT_VARIANT_REPO = "https://github.com/danielogen/linkedin"; //LinkedIn Kafka
+//    private static final int [] DEFAULT_PATCHES = {11791,11686,11591,12159,12073,11981,11867,11991,12207,11847};
 
 
     public static void main(String[] args) {
@@ -28,6 +29,7 @@ public class App {
             String reposFile = DEFAULT_REPOS_FILE;
             String clonePath = DEFAULT_CLONE_PATH;
             String dbPropertiesFile = DEFAULT_DB_PROPERTIES_FILE;
+//            int [] patches = DEFAULT_PATCHES;
 
             if (commandLine.hasOption("r")) {
                 reposFile = commandLine.getOptionValue("r");
@@ -45,11 +47,11 @@ public class App {
             dbPropertiesFile = (new File(dbPropertiesFile)).getAbsolutePath();
             System.setProperty("env.connections.file", dbPropertiesFile);
 
-//            RefactoringAnalysis refactoringAnalysis = new RefactoringAnalysis(reposFile, clonePath);
-//            refactoringAnalysis.start(parallelism);
+            AnalysisWithCherryPick analysisWithCherryPick = new AnalysisWithCherryPick(reposFile, clonePath);
+            analysisWithCherryPick.start(parallelism);
 
-            AnalysisWithCherryPick analysisWithCherryPick = new AnalysisWithCherryPick(clonePath, DEFAULT_SOURCE_REPO, DEFAULT_VARIANT_REPO,11791);
-            analysisWithCherryPick.start();
+//            AnalysisWithCherryPick analysisWithCherryPick = new AnalysisWithCherryPick(clonePath, DEFAULT_SOURCE_REPO, DEFAULT_VARIANT_REPO,DEFAULT_PATCHES[0]);
+//            analysisWithCherryPick.start();
 
         } catch (Exception e) {
             e.printStackTrace();
