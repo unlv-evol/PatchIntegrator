@@ -27,7 +27,7 @@ public class RefactoringMinerUtils {
     }
 
     public void detectAtCommit(String commitHash, List<Refactoring> refactoringsResult) throws Exception {
-        new edu.unlv.evol.patchintegrator.utils.GitUtils(git).gitReset();
+        new GitUtils(git).gitReset();
 
         GitHistoryRefactoringMiner miner = new GitHistoryRefactoringMinerImpl();
         miner.detectAtCommit(git.getRepository(),
@@ -74,12 +74,15 @@ public class RefactoringMinerUtils {
                 UMLClass extractedClass = ((ExtractSuperclassRefactoring) refactoring).getExtractedClass();
                 destCodeRange.add(extractedClass.getLocationInfo().codeRange());
 
-                Set<UMLClass> subClasses = ((ExtractSuperclassRefactoring) refactoring).getUMLSubclassSetAfter(); //.getSubclassUMLSet();
+                //bug fix required here
+                Set<UMLClass> subClasses = ((ExtractSuperclassRefactoring) refactoring).getUMLSubclassSetAfter();
                 subClasses.forEach(umlClass -> {
                     sourceCodeRange.add(umlClass.getLocationInfo().codeRange());
                     destCodeRange.add(umlClass.getLocationInfo().codeRange());
                 });
                 break;
+
+                // bug fix required here
             case EXTRACT_AND_MOVE_OPERATION:
                 UMLOperation extractedOperation = ((ExtractOperationRefactoring) refactoring).getExtractedOperation();
                 UMLOperation sourceBeforeExtraction = (UMLOperation) ((ExtractOperationRefactoring) refactoring)
