@@ -25,27 +25,68 @@ import java.util.concurrent.*;
 
 public class AnalysisWithCherryPick {
     private final String clonePath;
-    private final String sourceURL; //e.g Apache Kafka
-    private final String targetURL; // e.g linkedIn
-    private final int missedPatches; //11012
+    private String sourceURL; //e.g Apache Kafka
+    private String targetURL; // e.g linkedIn
+    private int [] missedPatches; //11012
+    private final String repoListFile;
 
     // --- added ---
-    public AnalysisWithCherryPick(String clonePath, String sourceURL, String targetURL, int missedPatches){
+//    public AnalysisWithCherryPick(String clonePath, String sourceURL, String targetURL, int [] missedPatches){
+//        this.clonePath = clonePath;
+//        this.sourceURL = sourceURL;
+//        this.targetURL = targetURL;
+//        this.missedPatches = missedPatches;
+//    }
+
+    public AnalysisWithCherryPick(String repoListFile, String clonePath){
+        this.repoListFile = repoListFile;
         this.clonePath = clonePath;
-        this.sourceURL = sourceURL;
-        this.targetURL = targetURL;
-        this.missedPatches = missedPatches;
+    }
+
+    public void start(int parallelism) {
+        try {
+            DatabaseUtils.createDatabase();
+            runParallel(parallelism);
+        } catch (Throwable e) {
+            Utils.log(null, e);
+            e.printStackTrace();
+        }
     }
 
     /**
      *
-     * @throws Exception
+     * @throws Exception Exception
      */
     public void start() throws Exception {
         DatabaseUtils.createDatabase();
         Base.open();
-        cloneAndAnalyzeProject(sourceURL, targetURL); //clone the variant fork project
+//        cloneAndAnalyzeProject(sourceURL, targetURL); //clone the variant fork project
         Base.close();
+    }
+    private void runParallel(int parallelism) throws Exception {
+        List<String> projectURLs = Files.readAllLines(Paths.get(repoListFile));
+
+        ForkJoinPool forkJoinPool = null;
+        try {
+            forkJoinPool = new ForkJoinPool(parallelism);
+            forkJoinPool.submit(() ->
+                    projectURLs.parallelStream().forEach(s -> {
+                        String [] lineSpitted = s.split(",");
+                        sourceURL = lineSpitted[0];
+                        targetURL = lineSpitted[1];
+                        missedPatches = Arrays.stream(lineSpitted, 2, (lineSpitted.length - 1)).mapToInt(Integer::parseInt).toArray();
+                        Base.open();
+                        cloneAndAnalyzeProject(sourceURL, targetURL, missedPatches);
+                        Base.close();
+                    })
+            ).get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        } finally {
+            if (forkJoinPool != null) {
+                forkJoinPool.shutdown();
+            }
+        }
     }
 
     /**
@@ -53,7 +94,7 @@ public class AnalysisWithCherryPick {
      * @param sourceURL GitHub repo of the source variant
      * @param targetURL GitHub repo of the target(divergent) variant
      */
-    private void cloneAndAnalyzeProject(String sourceURL, String targetURL) {
+    private void cloneAndAnalyzeProject(String sourceURL, String targetURL, int [] missedPatches) {
         String projectName = Utils.getProjectName(targetURL);
 
         Project project = Project.findFirst("url = ?", targetURL);
@@ -68,7 +109,7 @@ public class AnalysisWithCherryPick {
             removeProject(projectName);
             cloneProject(targetURL);
             addRemoteRepo(sourceURL, targetURL);
-            analyzeProject(project);
+            analyzeProject(project, missedPatches);
             project.setDone();
             project.saveIt();
             Utils.log(projectName, "Finished the analysis, removing the repository...");
@@ -84,7 +125,8 @@ public class AnalysisWithCherryPick {
      * Clones the target variant repository to a local directory
      * specified by the clonePath variable
      * @param targetURL URL of the target (divergent fork) variant
-     * @throws GitAPIException
+     * @throws GitAPIException GitAPIException
+     * @see GitAPIException
      */
     private void cloneProject(String targetURL) throws GitAPIException{
         String projectName = Utils.getProjectName(targetURL);
@@ -111,13 +153,13 @@ public class AnalysisWithCherryPick {
         if(file.isDirectory()){
             // project was cloned successfully, we can now add remote
             Git git = new Git(Git.open(file).getRepository());
-            Utils.log(projectName, String.format("Adding remote repo to %s...", projectName));
+            Utils.log(projectName, String.format("Adding remote (%s) repository to %s...", Utils.getProjectName(sourceURL), projectName));
             git.remoteAdd()
                     .setName(Utils.getProjectName(sourceURL))
                     .setUri(new URIish(String.format("%s.git", sourceURL))) //project-url.git
                     .call();
 
-            Utils.log(projectName, String.format("Fetching remote content to %s...", projectName));
+            Utils.log(projectName, String.format("Fetching remote (%s) content to %s...", Utils.getProjectName(sourceURL), projectName));
             git.fetch()
                     .setRemote(Utils.getProjectName(sourceURL))
                     .call();
@@ -145,9 +187,9 @@ public class AnalysisWithCherryPick {
      * @throws GitAPIException thrown when git operation fails
      * @throws IOException thrown when project directory is not available
      */
-    private void analyzeProject(Project project) throws GitAPIException, IOException {
+    private void analyzeProject(Project project, int [] missedPatches) throws GitAPIException, IOException {
         Utils.log(project.getName(), String.format("Analyzing %s's commits...", project.getName()));
-        analyzeProjectCommits(project);
+        analyzeProjectCommits(project, missedPatches);
 
         Utils.log(project.getName(), String.format("Analyzing %s with RefMiner...", project.getName()));
         analyzeProjectWithRefMiner(project);
@@ -159,49 +201,61 @@ public class AnalysisWithCherryPick {
      * @throws GitAPIException thrown when git operation fails
      * @throws IOException thrown when project directory is not available
      */
-    private void analyzeProjectCommits(Project project) throws GitAPIException, IOException {
+    private void analyzeProjectCommits(Project project, int [] missedPatches) throws GitAPIException, IOException {
         GitUtils gitUtils = new GitUtils(new File(clonePath, project.getName()));
 
         //---edit this line of code, get the mergeCommit of the patch/pull request---
-        String prMergeCommit = new GitHubUtils().getMergeCommitSha(sourceURL, missedPatches);
-        Iterable<RevCommit> mergeCommits = gitUtils.getMergeCommit(prMergeCommit);
-        RevCommit mergeParent = gitUtils.getLastCommit();
-        int mergeCommitIndex = 0;
-        Map<String, String> conflictingJavaFiles = new HashMap<>();
-        for (RevCommit mergeCommit : mergeCommits) {
-            mergeCommitIndex++;
-            Utils.log(project.getName(), String.format("Analyzing commit %.7s... (%d/?)", mergeCommit.getName(),
-                    mergeCommitIndex));
+        for(int patch: missedPatches) {
+            Utils.log(project.getName(), String.format("Analyzing Patch......%d", patch));
+            Patch patchModel;
+            String prMergeCommit = new GitHubUtils().getMergeCommitSha(sourceURL, patch);
+            Iterable<RevCommit> mergeCommits = gitUtils.getMergeCommit(prMergeCommit);
+            RevCommit mergeParent = gitUtils.getLastCommit();
 
-            // Skip this commit if it already exists in the database.
-            MergeCommit mergeCommitModel = MergeCommit.findFirst("commit_hash = ?", mergeCommit.getName());
-            if (mergeCommitModel != null) {
-                if (mergeCommitModel.isDone()) {
-                    Utils.log(project.getName(), "Already analyzed, skipping...");
-                    continue;
+            int mergeCommitIndex = 0;
+
+            Map<String, String> conflictingJavaFiles = new HashMap<>();
+            for (RevCommit mergeCommit : mergeCommits) {
+                mergeCommitIndex++;
+                Utils.log(project.getName(), String.format("Analyzing commit %.7s... (%d/?)", mergeCommit.getName(),
+                        mergeCommitIndex));
+
+                // Skip this commit if it already exists in the database.
+                MergeCommit mergeCommitModel = MergeCommit.findFirst("commit_hash = ?", mergeCommit.getName());
+                if (mergeCommitModel != null) {
+                    if (mergeCommitModel.isDone()) {
+                        Utils.log(project.getName(), "Already analyzed, skipping...");
+                        continue;
+                    }
+                    // Will cascade to dependent records because of foreign key constraints
+                    mergeCommitModel.delete();
                 }
-                // Will cascade to dependent records because of foreign key constraints
-                mergeCommitModel.delete();
-            }
 
-            try {
+                try {
+                    conflictingJavaFiles.clear();
+                    boolean isConflicting = gitUtils.isConflictingCherryPick(mergeCommit, conflictingJavaFiles);
+
+                    mergeCommitModel = new MergeCommit(mergeCommit.getName(), isConflicting,
+                            mergeParent.getName(), mergeCommit.getName(), project,
+                            mergeCommit.getAuthorIdent().getName(), mergeCommit.getAuthorIdent().getEmailAddress(),
+                            mergeCommit.getCommitTime());
+
+                    mergeCommitModel.saveIt();
+
+                    patchModel = new Patch(patch, isConflicting, project);
+                    patchModel.setDone();
+                    patchModel.saveIt();
+
+                    extractConflictingRegions(gitUtils, mergeCommitModel, conflictingJavaFiles);
+                    mergeCommitModel.setDone();
+                    mergeCommitModel.saveIt();
+
+                } catch (GitAPIException e) {
+                    Utils.log(project.getName(), e);
+                    e.printStackTrace();
+                }
                 conflictingJavaFiles.clear();
-                boolean isConflicting = gitUtils.isConflictingCherryPick(mergeCommit, conflictingJavaFiles);
-
-                mergeCommitModel = new MergeCommit(mergeCommit.getName(), isConflicting,
-                        mergeParent.getName(), mergeCommit.getName(), project,
-                        mergeCommit.getAuthorIdent().getName(), mergeCommit.getAuthorIdent().getEmailAddress(),
-                        mergeCommit.getCommitTime());
-
-                mergeCommitModel.saveIt();
-                extractConflictingRegions(gitUtils, mergeCommitModel, conflictingJavaFiles);
-                mergeCommitModel.setDone();
-                mergeCommitModel.saveIt();
-            } catch (GitAPIException e) {
-                Utils.log(project.getName(), e);
-                e.printStackTrace();
             }
-            conflictingJavaFiles.clear();
         }
     }
 
