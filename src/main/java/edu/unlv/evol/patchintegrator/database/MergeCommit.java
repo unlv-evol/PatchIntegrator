@@ -8,15 +8,18 @@ public class MergeCommit extends Model {
 
     public MergeCommit(){}
 
-    public MergeCommit(String commitHash, boolean isConflicting, String parent1, String parent2, Project project,
+    public MergeCommit(String commitHash, boolean isConflicting, String parent1, String parent2, Project project, Patch patch,
                        String authorName, String authorEmail, int timestamp) {
-        set("commit_hash", commitHash, "project_id", project.getId(), "is_conflicting", isConflicting, "parent_1", parent1,
+        set("commit_hash", commitHash, "project_id", project.getId(), "patch_id", patch.getId(), "is_conflicting", isConflicting, "parent_1", parent1,
                 "parent_2", parent2, "is_done", false, "author_name", authorName, "author_email", authorEmail,
                 "timestamp", timestamp);
     }
 
     public int getProjectId() {
         return getInteger("project_id");
+    }
+    public int getPatchId(){
+        return getInteger("patch_id");
     }
 
     public String getCommitHash() {
