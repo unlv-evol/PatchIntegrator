@@ -7,22 +7,37 @@ import org.javalite.activejdbc.annotations.Table;
 public class Project extends Model {
 
     static {
-        validatePresenceOf("url", "name");
+        validatePresenceOf("fork_url", "fork_name");
     }
 
     public Project() {
     }
 
-    public Project(String url, String name) {
-        set("url", url, "name", name, "is_done", false);
+    public Project(String source_url, String fork_url, String source_name, String fork_name) {
+        set("source_url", source_url,
+                "fork_url", fork_url,
+                "source_name", source_name,
+                "fork_name", fork_name,
+                "is_done", false
+        );
     }
 
     public String getName() {
-        return getString("name");
+        return getString("fork_name");
+    }
+    public String getSourceName() {
+        return getString("source_name");
+    }
+    public String getForkName() {
+        return getString("fork_name");
     }
 
-    public String getURL(){
-        return getString("url");
+    public String getSourceURL() {
+        return getString("source_url");
+    }
+
+    public String getForkURL() {
+        return getString("fork_url");
     }
 
     public boolean isDone() {
