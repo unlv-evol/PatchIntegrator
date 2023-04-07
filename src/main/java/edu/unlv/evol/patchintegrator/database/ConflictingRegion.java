@@ -15,7 +15,8 @@ public class ConflictingRegion extends Model {
                 "parent_2_start_line", startLineParent2, "parent_2_length", lengthParent2, "parent_2_path", pathParent2,
                 "conflicting_java_file_id", conflictingJavaFile.getId(),
                 "merge_commit_id", conflictingJavaFile.getMergeCommitId(),
-                "project_id", conflictingJavaFile.getProjectId());
+                "project_id", conflictingJavaFile.getProjectId(),
+                "patch_id", conflictingJavaFile.getPatchId());
     }
 
     public int getConflictingJavaFileId() {
@@ -30,6 +31,11 @@ public class ConflictingRegion extends Model {
 
     public int getProjectId() {
         return getInteger("project_id");
+    }
+
+
+    public int getPatchId() {
+        return getInteger("patch_id");
     }
 
 }
