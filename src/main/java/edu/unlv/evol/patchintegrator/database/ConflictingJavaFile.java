@@ -11,7 +11,7 @@ public class ConflictingJavaFile extends Model {
 
     public ConflictingJavaFile(String path, String type, MergeCommit mergeCommit) {
         set("path", path, "type", type, "merge_commit_id", mergeCommit.getId(),
-                "project_id", mergeCommit.getProjectId());
+                "project_id", mergeCommit.getProjectId(), "patch_id", mergeCommit.getPatchId());
     }
 
     public int getMergeCommitId(){
@@ -22,6 +22,6 @@ public class ConflictingJavaFile extends Model {
     public int getProjectId(){
         return getInteger("project_id");
     }
-
-
+    
+    public int getPatchId() { return  getInteger("patch_id"); }
 }
