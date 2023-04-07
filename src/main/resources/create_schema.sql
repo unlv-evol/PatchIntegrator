@@ -22,8 +22,10 @@ USE `patch_integrator` ;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `patch_integrator`.`project` (
   `id` INT NOT NULL AUTO_INCREMENT,
-  `url` VARCHAR(2000) NOT NULL,
-  `name` VARCHAR(100) NULL,
+  `source_url` VARCHAR(2000) NOT NULL,
+  `fork_url` VARCHAR(2000) NOT NULL,
+  `source_name` VARCHAR(100) NULL,
+  `fork_name` VARCHAR(100) NULL,
   `is_done` TINYINT(1) NULL DEFAULT 0,
   PRIMARY KEY (`id`))
 ENGINE = InnoDB;
@@ -57,16 +59,17 @@ CREATE TABLE IF NOT EXISTS `patch_integrator`.`merge_commit` (
   `parent_1` CHAR(40) NOT NULL,
   `parent_2` CHAR(40) NOT NULL,
   `project_id` INT NOT NULL,
+  `patch_id` INT NOT NULL,
   `is_done` TINYINT(1) NULL DEFAULT 0,
   `author_name` VARCHAR(150) NULL,
   `author_email` VARCHAR(150) NULL,
   `timestamp` INT NULL,
-  PRIMARY KEY (`id`, `project_id`),
+  PRIMARY KEY (`id`, `project_id`, `patch_id`),
   UNIQUE INDEX `commit_hash_UNIQUE` (`commit_hash` ASC),
-  INDEX `fk_merge_commit_project_idx` (`project_id` ASC),
-  CONSTRAINT `fk_merge_commit_project`
-    FOREIGN KEY (`project_id`)
-    REFERENCES `patch_integrator`.`project` (`id`)
+  INDEX `fk_merge_commit_patch_idx` (`project_id` ASC),
+  CONSTRAINT `fk_merge_commit_patch`
+    FOREIGN KEY (`project_id`, `patch_id`)
+    REFERENCES `patch_integrator`.`patch` (`project_id`, `id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
@@ -119,11 +122,12 @@ CREATE TABLE IF NOT EXISTS `patch_integrator`.`conflicting_java_file` (
   `type` VARCHAR(45) NOT NULL,
   `merge_commit_id` INT NOT NULL,
   `project_id` INT NOT NULL,
-  PRIMARY KEY (`id`, `merge_commit_id`, `project_id`),
-  INDEX `fk_conflicting_java_file_merge_commit1_idx` (`merge_commit_id` ASC, `project_id` ASC),
+  `patch_id` INT NOT NULL,
+  PRIMARY KEY (`id`, `merge_commit_id`, `project_id`, `patch_id`),
+  INDEX `fk_conflicting_java_file_merge_commit1_idx` (`merge_commit_id` ASC, `project_id` ASC, `patch_id` ASC),
   CONSTRAINT `fk_conflicting_java_file_merge_commit1`
-    FOREIGN KEY (`merge_commit_id` , `project_id`)
-    REFERENCES `patch_integrator`.`merge_commit` (`id` , `project_id`)
+    FOREIGN KEY (`merge_commit_id` , `project_id`, `patch_id`)
+    REFERENCES `patch_integrator`.`merge_commit` (`id` , `project_id`, `patch_id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
@@ -143,11 +147,12 @@ CREATE TABLE IF NOT EXISTS `patch_integrator`.`conflicting_region` (
   `conflicting_java_file_id` INT NOT NULL,
   `merge_commit_id` INT NOT NULL,
   `project_id` INT NOT NULL,
-  PRIMARY KEY (`id`, `conflicting_java_file_id`, `merge_commit_id`, `project_id`),
-  INDEX `fk_conflicting_region_conflicting_java_file1_idx` (`conflicting_java_file_id` ASC, `merge_commit_id` ASC, `project_id` ASC),
+  `patch_id` INT NOT NULL,
+  PRIMARY KEY (`id`, `conflicting_java_file_id`, `merge_commit_id`, `project_id`, `patch_id`),
+  INDEX `fk_conflicting_region_conflicting_java_file1_idx` (`conflicting_java_file_id` ASC, `merge_commit_id` ASC, `project_id` ASC, `patch_id` ASC),
   CONSTRAINT `fk_conflicting_region_conflicting_java_file1`
-    FOREIGN KEY (`conflicting_java_file_id` , `merge_commit_id` , `project_id`)
-    REFERENCES `patch_integrator`.`conflicting_java_file` (`id` , `merge_commit_id` , `project_id`)
+    FOREIGN KEY (`conflicting_java_file_id` , `merge_commit_id` , `project_id`, `patch_id`)
+    REFERENCES `patch_integrator`.`conflicting_java_file` (`id` , `merge_commit_id` , `project_id`, `patch_id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
@@ -193,14 +198,15 @@ CREATE TABLE IF NOT EXISTS `patch_integrator`.`conflicting_region_history` (
   `conflicting_java_file_id` INT NOT NULL,
   `merge_commit_id` INT NOT NULL,
   `project_id` INT NOT NULL,
+  `patch_id` INT NOT NULL,
   `author_name` VARCHAR(150) NULL,
   `author_email` VARCHAR(150) NULL,
   `timestamp` INT NULL,
-  PRIMARY KEY (`id`, `conflicting_region_id`, `conflicting_java_file_id`, `merge_commit_id`, `project_id`),
-  INDEX `fk_conflicting_region_history_conflicting_region1_idx` (`conflicting_region_id` ASC, `conflicting_java_file_id` ASC, `merge_commit_id` ASC, `project_id` ASC),
+  PRIMARY KEY (`id`, `conflicting_region_id`, `conflicting_java_file_id`, `merge_commit_id`, `project_id`, `patch_id`),
+  INDEX `fk_conflicting_region_history_conflicting_region1_idx` (`conflicting_region_id` ASC, `conflicting_java_file_id` ASC, `merge_commit_id` ASC, `project_id` ASC, `patch_id` ASC),
   CONSTRAINT `fk_conflicting_region_history_conflicting_region1`
-    FOREIGN KEY (`conflicting_region_id` , `conflicting_java_file_id` , `merge_commit_id` , `project_id`)
-    REFERENCES `patch_integrator`.`conflicting_region` (`id` , `conflicting_java_file_id` , `merge_commit_id` , `project_id`)
+    FOREIGN KEY (`conflicting_region_id` , `conflicting_java_file_id` , `merge_commit_id` , `project_id`, `patch_id`)
+    REFERENCES `patch_integrator`.`conflicting_region` (`id` , `conflicting_java_file_id` , `merge_commit_id` , `project_id`, `patch_id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
