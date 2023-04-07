@@ -19,7 +19,7 @@ public class ConflictingRegionHistory extends Model {
                 "conflicting_region_id", conflictingRegion.getId(),
                 "conflicting_java_file_id", conflictingRegion.getConflictingJavaFileId(),
                 "merge_commit_id", conflictingRegion.getMergeCommitId(),
-                "project_id", conflictingRegion.getProjectId(),
+                "project_id", conflictingRegion.getProjectId(), "patch_id", conflictingRegion.getPatchId(),
                 "author_name", authorName, "author_email", authorEmail,
                 "timestamp", timestamp);
     }
