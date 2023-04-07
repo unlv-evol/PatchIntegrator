@@ -26,15 +26,15 @@ import java.util.concurrent.*;
 public class AnalysisWithCherryPick {
     private final String clonePath;
     private String sourceURL; //e.g Apache Kafka
-    private String targetURL; // e.g linkedIn
+    private String forkURL; // e.g linkedIn
     private int [] missedPatches; //11012
     private final String repoListFile;
 
     // --- added ---
-//    public AnalysisWithCherryPick(String clonePath, String sourceURL, String targetURL, int [] missedPatches){
+//    public AnalysisWithCherryPick(String clonePath, String sourceURL, String forkURL, int [] missedPatches){
 //        this.clonePath = clonePath;
 //        this.sourceURL = sourceURL;
-//        this.targetURL = targetURL;
+//        this.forkURL = forkURL;
 //        this.missedPatches = missedPatches;
 //    }
 
@@ -60,7 +60,7 @@ public class AnalysisWithCherryPick {
     public void start() throws Exception {
         DatabaseUtils.createDatabase();
         Base.open();
-//        cloneAndAnalyzeProject(sourceURL, targetURL); //clone the variant fork project
+//        cloneAndAnalyzeProject(sourceURL, forkURL); //clone the variant fork project
         Base.close();
     }
     private void runParallel(int parallelism) throws Exception {
@@ -73,10 +73,10 @@ public class AnalysisWithCherryPick {
                     projectURLs.parallelStream().forEach(s -> {
                         String [] lineSpitted = s.split(",");
                         sourceURL = lineSpitted[0];
-                        targetURL = lineSpitted[1];
+                        forkURL = lineSpitted[1];
                         missedPatches = Arrays.stream(lineSpitted, 2, (lineSpitted.length - 1)).mapToInt(Integer::parseInt).toArray();
                         Base.open();
-                        cloneAndAnalyzeProject(sourceURL, targetURL, missedPatches);
+                        cloneAndAnalyzeProject(sourceURL, forkURL, missedPatches);
                         Base.close();
                     })
             ).get();
@@ -92,31 +92,32 @@ public class AnalysisWithCherryPick {
     /**
      *
      * @param sourceURL GitHub repo of the source variant
-     * @param targetURL GitHub repo of the target(divergent) variant
+     * @param forkURL GitHub repo of the target(divergent) variant
      */
-    private void cloneAndAnalyzeProject(String sourceURL, String targetURL, int [] missedPatches) {
-        String projectName = Utils.getProjectName(targetURL);
+    private void cloneAndAnalyzeProject(String sourceURL, String forkURL, int [] missedPatches) {
+        String forkName = Utils.getProjectName(forkURL);
+        String sourceName = Utils.getProjectName(sourceURL);
 
-        Project project = Project.findFirst("url = ?", targetURL);
+        Project project = Project.findFirst("fork_url = ?", forkURL);
         if (project == null) {
-            project = new Project(targetURL, projectName);
+            project = new Project(sourceURL, sourceName, forkURL, forkName);
             project.saveIt();
         } else if (project.isDone()) {
-            Utils.log(projectName, String.format("%s has been already analyzed, skipping...", projectName));
+            Utils.log(forkName, String.format("%s has been already analyzed, skipping...", forkName));
             return;
         }
         try {
-            removeProject(projectName);
-            cloneProject(targetURL);
-            addRemoteRepo(sourceURL, targetURL);
+            removeProject(forkName);
+            cloneProject(forkURL);
+            addRemoteRepo(sourceURL, forkURL);
             analyzeProject(project, missedPatches);
             project.setDone();
             project.saveIt();
-            Utils.log(projectName, "Finished the analysis, removing the repository...");
-            removeProject(projectName);
-            Utils.log(projectName, "Done with " + projectName);
+            Utils.log(forkName, "Finished the analysis, removing the repository...");
+            removeProject(forkName);
+            Utils.log(forkName, "Done with " + forkName);
         } catch (JGitInternalException | GitAPIException | IOException | URISyntaxException e) {
-            Utils.log(projectName, e);
+            Utils.log(forkName, e);
             e.printStackTrace();
         }
     }
@@ -124,16 +125,16 @@ public class AnalysisWithCherryPick {
     /**
      * Clones the target variant repository to a local directory
      * specified by the clonePath variable
-     * @param targetURL URL of the target (divergent fork) variant
+     * @param forkURL URL of the target (divergent fork) variant
      * @throws GitAPIException GitAPIException
      * @see GitAPIException
      */
-    private void cloneProject(String targetURL) throws GitAPIException{
-        String projectName = Utils.getProjectName(targetURL);
-        Utils.log(projectName, String.format("Cloning %s...", projectName));
+    private void cloneProject(String forkURL) throws GitAPIException{
+        String forkName = Utils.getProjectName(forkURL);
+        Utils.log(forkName, String.format("Cloning %s...", forkName));
         Git.cloneRepository()
-                .setURI(targetURL)
-                .setDirectory(new File(clonePath, projectName))
+                .setURI(forkURL)
+                .setDirectory(new File(clonePath, forkName))
                 .call();
 
     }
@@ -142,24 +143,24 @@ public class AnalysisWithCherryPick {
      * Adds remote (source variant) to the current cloned target variant.
      * It also runs git fetch command to include the content of remote repo into target variant
      * @param sourceURL URL of the source variant
-     * @param targetURL URL of the target (divergent fork) variant
+     * @param forkURL URL of the target (divergent fork) variant
      * @throws IOException
      * @throws URISyntaxException
      * @throws GitAPIException
      */
-    private void addRemoteRepo(String sourceURL, String targetURL) throws IOException, URISyntaxException, GitAPIException {
-        String projectName = Utils.getProjectName(targetURL);
-        File file = new File(String.format("%s/%s", clonePath, projectName)); //projects/projectname
+    private void addRemoteRepo(String sourceURL, String forkURL) throws IOException, URISyntaxException, GitAPIException {
+        String forkName = Utils.getProjectName(forkURL);
+        File file = new File(String.format("%s/%s", clonePath, forkName)); //projects/projectname
         if(file.isDirectory()){
             // project was cloned successfully, we can now add remote
             Git git = new Git(Git.open(file).getRepository());
-            Utils.log(projectName, String.format("Adding remote (%s) repository to %s...", Utils.getProjectName(sourceURL), projectName));
+            Utils.log(forkName, String.format("Adding remote (%s) repository to %s...", Utils.getProjectName(sourceURL), forkName));
             git.remoteAdd()
                     .setName(Utils.getProjectName(sourceURL))
                     .setUri(new URIish(String.format("%s.git", sourceURL))) //project-url.git
                     .call();
 
-            Utils.log(projectName, String.format("Fetching remote (%s) content to %s...", Utils.getProjectName(sourceURL), projectName));
+            Utils.log(forkName, String.format("Fetching remote (%s) content to %s...", Utils.getProjectName(sourceURL), forkName));
             git.fetch()
                     .setRemote(Utils.getProjectName(sourceURL))
                     .call();
@@ -168,11 +169,11 @@ public class AnalysisWithCherryPick {
 
     /**
      * Removes projects that were cloned in the project directory
-     * @param projectName specifies the project name
+     * @param forkName specifies the project name
      */
-    private void removeProject(String projectName) {
+    private void removeProject(String forkName) {
         try {
-            Files.walk(Paths.get(new File(clonePath, projectName).getAbsolutePath()))
+            Files.walk(Paths.get(new File(clonePath, forkName).getAbsolutePath()))
                     .sorted(Comparator.reverseOrder())
                     .map(Path::toFile)
                     .forEach(File::delete);
@@ -235,16 +236,16 @@ public class AnalysisWithCherryPick {
                     conflictingJavaFiles.clear();
                     boolean isConflicting = gitUtils.isConflictingCherryPick(mergeCommit, conflictingJavaFiles);
 
+                    patchModel = new Patch(patch, isConflicting, project);
+                    patchModel.saveIt();
+                    patchModel.setDone();
+
                     mergeCommitModel = new MergeCommit(mergeCommit.getName(), isConflicting,
-                            mergeParent.getName(), mergeCommit.getName(), project,
+                            mergeParent.getName(), mergeCommit.getName(), project, patchModel,
                             mergeCommit.getAuthorIdent().getName(), mergeCommit.getAuthorIdent().getEmailAddress(),
                             mergeCommit.getCommitTime());
 
                     mergeCommitModel.saveIt();
-
-                    patchModel = new Patch(patch, isConflicting, project);
-                    patchModel.setDone();
-                    patchModel.saveIt();
 
                     extractConflictingRegions(gitUtils, mergeCommitModel, conflictingJavaFiles);
                     mergeCommitModel.setDone();
