@@ -13,13 +13,8 @@ public class Project extends Model {
     public Project() {
     }
 
-    public Project(String source_url, String fork_url, String source_name, String fork_name) {
-        set("source_url", source_url,
-                "fork_url", fork_url,
-                "source_name", source_name,
-                "fork_name", fork_name,
-                "is_done", false
-        );
+    public Project(String source_url, String source_name, String fork_url, String fork_name) {
+        set("source_url", source_url, "source_name", source_name, "fork_url", fork_url, "fork_name", fork_name, "is_done", false);
     }
 
     public String getName() {
